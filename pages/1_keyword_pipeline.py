@@ -220,23 +220,21 @@ def build_prototypes(_model):
     i_matrix = np.stack([centroid(INTENT_PROTOTYPES[k]) for k in i_labels])
     return n_labels, n_matrix, i_labels, i_matrix
 
-# Cache model training để không retrain mỗi lần re-render
-@st.cache_data(show_spinner=False)
-def train_lgb_model(_tr_embs, _tr_niche, _tr_intent, _tr_wc, _y_tr):
+def train_lgb_model(tr_embs, tr_niche, tr_intent, tr_wc, y_tr):
     import lightgbm as lgb
     from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-    X_tr = np.hstack([_tr_embs, _tr_niche, _tr_intent, _tr_wc])
+    X_tr = np.hstack([tr_embs, tr_niche, tr_intent, tr_wc])
 
     lgb_clf = lgb.LGBMClassifier(
-        n_estimators=500, learning_rate=0.05, num_leaves=63,
+        n_estimators=300, learning_rate=0.05, num_leaves=63,
         max_depth=6, min_child_samples=20, subsample=0.8,
         colsample_bytree=0.8, class_weight='balanced',
         random_state=42, verbose=-1, n_jobs=-1,
     )
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    auc = cross_val_score(lgb_clf, X_tr, _y_tr, cv=cv, scoring='roc_auc').mean()
-    lgb_clf.fit(X_tr, _y_tr)
+    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    auc = cross_val_score(lgb_clf, X_tr, y_tr, cv=cv, scoring='roc_auc').mean()
+    lgb_clf.fit(X_tr, y_tr)
     return lgb_clf, float(auc)
 
 def prob_to_tier(p):
@@ -517,7 +515,9 @@ if run_btn and can_run:
     y_tr          = df_train['is_converter'].values
 
     status.markdown("**🎯 Step 3/3 — Training LightGBM (5-fold CV)...**")
-    lgb_clf, auc_mean = train_lgb_model(tr_embs, tr_niche_enc, tr_intent_enc, tr_wc, y_tr)
+    lgb_clf, auc_mean = train_lgb_model(
+        tr_embs, tr_niche_enc, tr_intent_enc, tr_wc, y_tr
+    )
 
     # Score keywords mới — dùng niche/intent từ Step 2
     # Map về cùng integer encoding như training
