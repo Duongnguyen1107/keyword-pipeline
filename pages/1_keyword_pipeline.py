@@ -304,19 +304,28 @@ with col_kw:
 
 with col_train:
     st.subheader("🧠 Training data (GA4)")
-    train_file = st.file_uploader(
-        "Upload training_data.csv (keyword, avg_ctr, niche, intent)",
-        type=["csv"],
-        key="train_upload"
-    )
-    if train_file:
-        try:
-            df_train_preview = pd.read_csv(train_file, nrows=5)
-            st.success(f"✅ **{train_file.name}**")
-            st.dataframe(df_train_preview, use_container_width=True, height=150)
-            train_file.seek(0)
-        except Exception as e:
-            st.error(f"Lỗi đọc file: {e}")
+    # Auto-load từ repo, chỉ fallback sang upload nếu không có
+    _default_train = Path(__file__).parent.parent / "data" / "training_data.csv"
+    train_file = None
+    if _default_train.exists():
+        st.success(f"✅ **training_data.csv** (từ repo)")
+        df_train_preview = pd.read_csv(_default_train, nrows=5)
+        st.dataframe(df_train_preview, use_container_width=True, height=150)
+        train_file = "use_default"
+    else:
+        train_file = st.file_uploader(
+            "Upload training_data.csv (keyword, avg_ctr, niche, intent)",
+            type=["csv"],
+            key="train_upload"
+        )
+        if train_file:
+            try:
+                df_train_preview = pd.read_csv(train_file, nrows=5)
+                st.success(f"✅ **{train_file.name}**")
+                st.dataframe(df_train_preview, use_container_width=True, height=150)
+                train_file.seek(0)
+            except Exception as e:
+                st.error(f"Lỗi đọc file: {e}")
 
 # ─────────────────────────────────────────────────────────────
 # RUN BUTTON
@@ -367,8 +376,11 @@ if run_btn and can_run:
     st.info(f"📊 **{len(df):,} unique keywords** | Keyword column: `{kw_col}` | Volume: `{vol_col or 'không có'}`")
 
     # ── Load training data ────────────────────────────────────
-    train_file.seek(0)
-    df_train = pd.read_csv(train_file)
+    if train_file == "use_default":
+            df_train = pd.read_csv(Path(__file__).parent.parent / "data" / "training_data.csv")
+        else:
+            train_file.seek(0)
+            df_train = pd.read_csv(train_file)
     required_cols = {'keyword', 'avg_ctr', 'niche', 'intent'}
     missing = required_cols - set(df_train.columns)
     if missing:
