@@ -506,7 +506,7 @@ def train_model(training_path: str, model_path: str, st_model) -> dict:
     from sklearn.metrics import classification_report
 
     log(f"Loading training data: {training_path}")
-    df = pd.read_csv(training_path)
+    df = pd.read_csv(training_path, encoding='utf-8-sig')
 
     required = {'keyword', 'avg_ctr', 'niche', 'intent'}
     missing  = required - set(df.columns)
