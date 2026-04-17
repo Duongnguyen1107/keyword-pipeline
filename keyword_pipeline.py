@@ -618,7 +618,16 @@ def run_pipeline(args):
 
     # ── Load keywords ─────────────────────────────────────────
     log(f"Loading keywords: {args.keywords}")
-    raw = pd.read_csv(args.keywords)
+    raw = None
+    for enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+        try:
+            raw = pd.read_csv(args.keywords, encoding=enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    if raw is None:
+        print("[ERROR] Không đọc được file — encoding không hỗ trợ")
+        sys.exit(1))
 
     # Auto-detect keyword column
     kw_col = None
