@@ -627,7 +627,7 @@ def run_pipeline(args):
             continue
     if raw is None:
         print("[ERROR] Không đọc được file — encoding không hỗ trợ")
-        sys.exit(1))
+        sys.exit(1)
 
     # Auto-detect keyword column
     kw_col = None
