@@ -366,7 +366,18 @@ if run_btn and can_run:
     # ── Load keywords ────────────────────────────────────────
     kw_file.seek(0)
     if kw_file.name.endswith(".csv"):
-        raw_kw = pd.read_csv(kw_file, dtype=str)
+        raw_bytes = kw_file.read()
+        raw_kw = None
+        for enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+            try:
+                raw_kw = pd.read_csv(io.BytesIO(raw_bytes), dtype=str, encoding=enc)
+                break
+            except UnicodeDecodeError:
+                continue
+        if raw_kw is None:
+            st.error("❌ Không đọc được file — thử save lại dưới dạng UTF-8")
+            st.stop()
+        kw_file.seek(0)
     else:
         raw_kw = pd.read_excel(kw_file, dtype=str)
     raw_kw.columns = raw_kw.columns.str.strip()
