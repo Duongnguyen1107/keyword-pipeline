@@ -128,7 +128,16 @@ with col2:
     uploaded = st.file_uploader("Upload GA4 export CSV", type=["csv"])
 
 if uploaded:
-    text = uploaded.read().decode("utf-8-sig")
+    raw = uploaded.read()
+for enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+    try:
+        text = raw.decode(enc)
+        break
+    except UnicodeDecodeError:
+        continue
+else:
+    st.error("❌ Không đọc được file — encoding không hỗ trợ")
+    st.stop()
     try:
         site_df, url_df = parse_ga4_csv(text)
     except Exception as e:
