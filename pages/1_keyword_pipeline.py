@@ -290,7 +290,17 @@ with col_kw:
     if kw_file:
         try:
             if kw_file.name.endswith(".csv"):
-                df_kw_preview = pd.read_csv(kw_file, nrows=5)
+                _preview_bytes = kw_file.read()
+                df_kw_preview = None
+                for _enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+                    try:
+                        df_kw_preview = pd.read_csv(io.BytesIO(_preview_bytes), nrows=5, encoding=_enc)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                if df_kw_preview is None:
+                    st.error("❌ Không đọc được file — thử save lại dưới dạng UTF-8")
+                kw_file.seek(0)
             else:
                 df_kw_preview = pd.read_excel(kw_file, nrows=5)
             st.success(f"✅ **{kw_file.name}**")
