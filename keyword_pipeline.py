@@ -262,6 +262,13 @@ INTENT_PROTOTYPES = {
         "ideas tips guide information list collection",
         "how to tips advice beginner guide",
     ],
+      "outdoor-ideas": [
+        "backyard patio outdoor living space ideas",
+        "garden landscaping design inspiration",
+        "fence trellis pergola outdoor structure",
+        "fire pit outdoor seating area ideas",
+        "planter container garden outdoor decor",
+    ],
 }
 
 STOP_WORDS = {
