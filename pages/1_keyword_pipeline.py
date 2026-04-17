@@ -585,7 +585,7 @@ if run_btn and can_run:
     # ══════════════════════════════════════════════════════════
     status.markdown("**🎯 Step 3/3 — Training ML model + Scoring...**")
     import lightgbm as lgb
-    from sklearn.model_selection import StratifiedKFold, cross_val_score
+    from sklearn.model_selection import StratifiedKFold
 
     df_tr = df_train.copy()
     df_tr = df_tr[df_tr['keyword'].notna()]
@@ -616,15 +616,13 @@ if run_btn and can_run:
     y_tr = df_tr['is_converter'].values
 
     lgb_clf = lgb.LGBMClassifier(
-        n_estimators=500, learning_rate=0.05, num_leaves=63,
+        n_estimators=150, learning_rate=0.05, num_leaves=63,
         max_depth=6, min_child_samples=20, subsample=0.8,
         colsample_bytree=0.8, class_weight='balanced',
         random_state=42, verbose=-1, n_jobs=-1,
     )
 
-    cv         = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    auc_scores = cross_val_score(lgb_clf, X_tr, y_tr, cv=cv, scoring='roc_auc')
-    auc_mean   = auc_scores.mean()
+    auc_mean = 0.0
     lgb_clf.fit(X_tr, y_tr)
 
     sc_niche_enc  = df['primary_niche'].map(niche_map).fillna(-1).astype(int).values.reshape(-1, 1)
